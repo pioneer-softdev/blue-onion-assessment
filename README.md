@@ -71,5 +71,7 @@ Make sure all values are aggregated by month as determined by the `ordered_at` d
 
 Please provide a link to a repository (GitHub, GitLab, etc.) containing your code. If you have any questions or need clarification on the requirements, please don't hesitate to reach out.
 
+We recognize that this assignment is both comprehensive and time intensive, and deeply appreciate the time you dedicate to it. While we encourage you to showcase your best work, if there are areas you choose not to prioritize, we’d greatly value insight into your decision-making process.
+
 Good luck!
 
