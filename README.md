@@ -14,7 +14,7 @@ Journal entries are used to record financial transactions in a double-entry acco
 
 ## Product Requirements
 
-Build a web application that displays the client's monthly aggregated journal entries for the data provided. For an example of how journal entries should be structured see the example journal entry here: ([csv version](/example_journal_entry.csv), [xcel version](/example_journal_entry.xlsx). Please note that the example journal entry is not based on the data provided in the CSV file.
+Build a web application that displays the client's monthly aggregated journal entries for the data provided. For an example of how journal entries should be structured see the example journal entry here: ([csv version](/example_journal_entries.csv), [excel version](/example_journal_entries.xlsx)). Please note that the example journal entry is not based on the data provided in the CSV file.
 
 ### Features
 - Include the following line items:
