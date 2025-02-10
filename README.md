@@ -10,12 +10,12 @@ In our hypothetical scenario, we have a client who needs to track their sales, s
 
 Provided in this repository is a [CSV file containing the relevant data for your application](/data.csv).
 
+Journal entries are used to record financial transactions in a double-entry accounting system. This means that for each transaction, there are two entries: a debit and a credit. The sum of the debits must equal the sum of the credits. For more information on how journal entries work, see [this article](https://www.moderntreasury.com/journal/accounting-for-developers-part-i).
+
 **Note:**
 Each order and its associated transactions (including multiple payments) should be processed individually. However, the final output must be a single, consolidated journal entry for each month (determined by the `ordered_at` date). This means:
 - All orders within a selected month are aggregated into one journal entry.
 - If an order has multiple payments, these should be summed up and displayed as one consolidated payment total in the journal entry.
-
-Journal entries are used to record financial transactions in a double-entry accounting system. This means that for each transaction, there are two entries: a debit and a credit. The sum of the debits must equal the sum of the credits. For more information on how journal entries work, see [this article](https://www.moderntreasury.com/journal/accounting-for-developers-part-i).
 
 ## Product Requirements
 
