@@ -1,4 +1,25 @@
 class JournalEntryService
+  ACCOUNTS = {
+    accounts_receivable: "Accounts Receivable",
+    revenue: "Revenue",
+    shipping_accounts_receivable: "Shipping Accounts Receivable",
+    shipping_revenue: "Shipping Revenue",
+    tax_receivable: "Tax Receivable",
+    sales_tax_payable: "Sales Tax Payable",
+    cash: "Cash"
+  }.freeze
+
+  DESCRIPTIONS = {
+    sales: "Cash expected for orders",
+    sales_revenue: "Revenue for orders",
+    shipping: "Cash expected for shipping on orders",
+    shipping_revenue: "Revenue for shipping",
+    tax: "Cash expected for taxes",
+    tax_payable: "Cash to be paid for sales tax",
+    payments: "Cash received",
+    payments_removal: "Removal of expectation of cash"
+  }.freeze
+
   def self.generate_monthly_journal_entries(month)
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month
@@ -12,64 +33,15 @@ class JournalEntryService
     total_payments = payments.sum(:amount).to_f
 
     journal_entries = []
+    journal_entries.concat(generate_journal_entry(ACCOUNTS[:accounts_receivable], total_sales, 0, DESCRIPTIONS[:sales]))
+    journal_entries.concat(generate_journal_entry(ACCOUNTS[:revenue], 0, total_sales, DESCRIPTIONS[:sales_revenue]))
+    journal_entries.concat(generate_journal_entry(ACCOUNTS[:shipping_accounts_receivable], total_shipping, 0, DESCRIPTIONS[:shipping]))
+    journal_entries.concat(generate_journal_entry(ACCOUNTS[:shipping_revenue], 0, total_shipping, DESCRIPTIONS[:shipping_revenue]))
+    journal_entries.concat(generate_journal_entry(ACCOUNTS[:tax_receivable], total_tax, 0, DESCRIPTIONS[:tax]))
+    journal_entries.concat(generate_journal_entry(ACCOUNTS[:sales_tax_payable], 0, total_tax, DESCRIPTIONS[:tax_payable]))
+    journal_entries.concat(generate_journal_entry(ACCOUNTS[:cash], total_payments, 0, DESCRIPTIONS[:payments]))
+    journal_entries.concat(generate_journal_entry(ACCOUNTS[:accounts_receivable], 0, total_payments, DESCRIPTIONS[:payments_removal]))
 
-    # Sales Entry
-    journal_entries << {
-      account: "Accounts Receivable",
-      debit: total_sales,
-      credit: 0,
-      description: "Cash expected for orders"
-    }
-    journal_entries << {
-      account: "Revenue",
-      debit: 0,
-      credit: total_sales,
-      description: "Revenue for orders"
-    }
-
-    # Shipping Entry
-    journal_entries << {
-      account: "Shipping Accounts Receivable",
-      debit: total_shipping,
-      credit: 0,
-      description: "Cash expected for shipping on orders",
-    }
-    journal_entries << {
-      account: "Shipping Revenue",
-      debit: 0,
-      credit: total_shipping,
-      description: "Revenue for shipping",
-    }
-
-    # Tax Entry
-    journal_entries << {
-      account: "Tax Receivable",
-      debit: total_tax,
-      credit: 0,
-      description: "Cash expected for taxes",
-    }
-    journal_entries << {
-      account: "Sales Tax Payable",
-      debit: 0,
-      credit: total_tax,
-      description: "Cash to be paid for sales tax",
-    }
-
-    # Payments Entry
-    journal_entries << {
-      account: "Cash",
-      debit: total_payments,
-      credit: 0,
-      description: "Cash received"
-    }
-    journal_entries << {
-      account: "Accounts Receivable",
-      debit: 0,
-      credit: total_payments,
-      description: "Removal of expectation of cash"
-    }
-
-    # Compute total debits & credits for validation
     total_debits = journal_entries.sum { |entry| entry[:debit] }
     total_credits = journal_entries.sum { |entry| entry[:credit] }
 
@@ -86,5 +58,16 @@ class JournalEntryService
   def self.get_available_months
     months = Order.distinct.pluck(Arel.sql("TO_CHAR(ordered_at, 'YYYY-MM')")).uniq
     months.sort.reverse
+  end
+
+  private
+
+  def self.generate_journal_entry(account, debit, credit, description)
+    [{
+      account: account,
+      debit: debit,
+      credit: credit,
+      description: description
+    }]
   end
 end
