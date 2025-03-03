@@ -1,86 +1,117 @@
 # Blue Onion Labs Take Home Assignment
 
-Thank you for your interest in Blue Onion!
+## **Overview**
+This project is a full-stack web application built using Ruby on Rails** for the backend and React (TypeScript) for the frontend. The application processes order and payment data from a provided CSV file and generates monthly aggregated journal entries following double-entry accounting principles.
 
-This assignment is designed to give you an opportunity to demonstrate your skills and experience in a practical format similar to what you would be doing as a member of our team. We are primarily a Rails shop, so if possible we would like you to use Ruby on Rails + React for this assignment.
+The application runs inside Docker containers, making it easy to set up and deploy.
 
-## Background
+---
 
-In our hypothetical scenario, we have a client who needs to track their sales, shipping, and tax information for their online store. This data must be aggregated into monthly journal entries for their accounting system. The client has provided us with a CSV file containing their orders and payments for the year 2023. Your task is to build a web application to display these journal entries.
+## **Running the Application (via Docker)**
 
-Provided in this repository is a [CSV file containing the relevant data for your application](/data.csv).
+### **Prerequisites**
+Ensure you have Docker and Docker Compose installed:
+- **Docker**: [Download Here](https://www.docker.com/get-started)
+- **Docker Compose** (Comes bundled with Docker Desktop)
 
-Journal entries are used to record financial transactions in a double-entry accounting system. This means that for each transaction, there are two entries: a debit and a credit. The sum of the debits must equal the sum of the credits. For more information on how journal entries work, see [this article](https://www.moderntreasury.com/journal/accounting-for-developers-part-i).
+### **Clone the Repository**
+```sh
+git clone https://github.com/pioneer-softdev/blue-onion-assessment.git
+cd interview-fullstack
+```
 
-**Note:**
-Each order and its associated transactions (including multiple payments) should be processed individually. However, the final output must be a single, consolidated journal entry for each month (determined by the `ordered_at` date). This means:
-- All orders within a selected month are aggregated into one journal entry.
-- If an order has multiple payments, these should be summed up and displayed as one consolidated payment total in the journal entry.
+### **Run the Application**
+```sh
+docker-compose up --build
+```
 
-## Product Requirements
+This command:
+- Builds the backend (Rails API) and frontend (React)
+- Starts a PostgreSQL database container
+- Runs database migrations
+- Imports data.csv into the database
+- Launches the application
 
-Build a web application that displays the client's monthly aggregated journal entries for the data provided. For an example of how journal entries should be structured see the example journal entry here: ([csv version](/example_journal_entries.csv), [excel version](/example_journal_entries.xlsx)). Please note that the example journal entry is not based on the data provided in the CSV file.
+### **Access the Application**
+- **Backend API:** [http://localhost:3000](http://localhost:3000)
+- **Frontend Web App:** [http://localhost:5173](http://localhost:5173)
 
-### Features
-- **Monthly Aggregated Journal Entry**
-  - Only one consolidated journal entry should be generated per month.
-  - Users will select a month to view the corresponding aggregated journal entry.
-- **Line Items Included**
-  - **Sales (Revenue)**
-    - Debit to Accounts Receivable: Represents the money expected to be received for orders placed.
-    - Credit to Revenue: Represents the revenue earned from orders placed.
-  - **Shipping**
-    - Debit to Accounts Receivable: Represents the money expected to be received for shipping fees.
-    - Credit to Shipping Revenue: Represents the revenue earned from shipping fees charged.
-  - **Taxes**
-    - Debit to Accounts Receivable: Represents the total sales tax charged for orders placed.
-    - Credit to Sales Tax Payable: Represents the obligation to remit the collected sales tax to the appropriate tax authority.
-  - **Payments**
-    - Debit to Cash: Represents the money received from payments for orders placed.
-    - Credit to Accounts Receivable: Represents the reduction in the amount expected to be received due to the payment.
-    - **Clarification:** If an order includes multiple payments, these should be aggregated so that the journal entry reflects the total payment received for that month.
-- **Total Line Item**
-  - Include a line that sums the debits and credits for each category, ensuring the journal entries balance.
+### **Manually Re-import CSV Data** (Optional)
+If needed, you can manually re-import `data.csv`:
+```sh
+docker-compose exec backend rails import:orders_and_payments
+```
 
-### Calculations
+### **Stopping the Application**
+```sh
+docker-compose down
+```
 
-Below are the formulas for calculating the values for each category:
-- **Sales:** `price_per_item * quantity`
-- **Shipping:** `shipping`
-- **Taxes:** `sales * tax_rate`
-- **Payments:** `payment_amount`
+---
 
-Make sure all values are aggregated by month as determined by the `ordered_at` date on the order.
+## **Running Backend Tests**
+This project includes RSpec tests for:
+- Models (`Order`, `Payment`) to ensure correct calculations.
+- Service Layer (`JournalEntryService`) to verify accurate data aggregation.
+- API Endpoints (`/api/journal_entries`, `/api/journal_entries/months`).
 
-## Technical Requirements
+### **Run All Tests**
+```sh
+docker-compose exec backend rspec
+```
 
-### Database
+### **Run Specific Test File**
+```sh
+docker-compose exec backend rspec spec/services/journal_entry_service_spec.rb
+```
 
-- Use a database of your choice.
-- Design a schema to store the data from the CSV file.
-- Import data from the CSV file into the database.
+---
 
-### Back End
+## **Thought Process & Decisions**
 
-- Build the API using a modern back end framework, ideally Ruby on Rails.
-- Develop the necessary logic to compute and aggregate data for the front end.
-- Create an API endpoint for the front end to fetch the required data.
+### **Backend Design (Rails API)**
+- Used Ruby on Rails for quick development and strong support for Active Record ORM.
+- Designed database tables for `orders`, `payments`, and `journal_entries`.
+- Implemented a Rake task (`import:orders_and_payments`) to read `data.csv` and populate the database.
+- Ensured CORS support to allow API calls from the frontend.
+- Used Docker to make setup easier and prevent dependency issues.
 
-### Front End
+### **Data Aggregation & Journal Entries**
+- **Monthly Aggregation:**
+  - Orders are grouped by month (`ordered_at` date).
+  - Payments are summed for each order within the same month.
 
-- Build the user interface using a modern front end framework, ideally React.
-- Build a simple web application to display the journal entries with a form to select a month.
+- **Assumptions in Aggregation:**
+  - If an order has multiple payments, they are summed together.
+  - Payments are applied to the same month as the order.
+  - All transactions balance (`total debits = total credits`).
 
-### Documentation
+### **Frontend (React + TypeScript)**
+- Built a simple UI using React + TypeScript.
+- Implemented a month selector dropdown to allow users to select a month.
+- Displayed journal entries in a table format, ensuring clarity and correctness.
+- Used Tailwind CSS for modern styling.
+- Created a custom hook (`useJournalEntries`) for managing API calls and state.
 
-- Provide a README with instructions on how to run the application.
-- Include a brief explanation of the decisions you made in your implementation, including any assumptions about data aggregation.
+### **Deployment & Dockerization**
+- Dockerized backend, frontend, and database to ensure seamless setup.
+- Used Docker Compose to manage multi-container environments.
+- Mounted `data.csv` inside the backend container to enable CSV import.
+- Automated database migrations and CSV import upon backend startup.
 
-## Submission
+---
 
-Please provide a link to a repository (GitHub, GitLab, etc.) containing your code. If you have any questions or need clarification on the requirements, please don't hesitate to reach out.
+## **Future Improvements**
+- **Implement Authentication** (e.g., API keys, JWT) to secure API endpoints.
+- **Optimize Docker Images** to reduce build size and speed up deployment.
+- **Deploy to Cloud** (e.g., AWS, DigitalOcean, Vercel) for production-ready hosting.
+- **Add Logging & Monitoring** to track API performance and errors.
+- **Enhance UI with Charts** to visualize financial data better.
 
-We recognize that this assignment is both comprehensive and time intensive, and deeply appreciate the time you dedicate to it. While we encourage you to showcase your best work, if there are areas you choose not to prioritize, we'd greatly value insight into your decision-making process.
+---
 
-Good luck!
+## **Conclusion**
+This project successfully processes orders and payments, aggregates them into monthly journal entries, and displays them in a structured format. The Docker-based setup ensures easy deployment, and the React + Rails architecture provides a scalable foundation for future enhancements.
+
+Thank you for reviewing this assessment! 🚀
 
